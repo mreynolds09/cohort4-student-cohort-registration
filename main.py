@@ -136,7 +136,7 @@ def view_all_stu_cohrt_reg(where=None):
         #  student_id    cohort_id   registration_date  completion_date drop_date     active                        
         f"{headers[0]:15}{headers[1]:15}{headers[2]:20}{headers[3]:20}{headers[4]:15}{headers[5]:}")
     print(
-        f'{"------------":15}{"---------":15}{"-----------------":20}{"---------":20}{"-----":15}{"---------"}'
+        f'{"-----------":15}{"----------":15}{"-----------------":20}{"------------------":20}{"--------":15}{"-----"}'
     )
 
     for row in rows:
@@ -163,15 +163,15 @@ def view_all_courses(where=None):
 
         print(
             #  course_id      name         description     active                                   
-            f"{headers[0]:15}{headers[1]:15}{headers[2]:20}{headers[3]}")
+            f"{headers[0]:10}{headers[1]:30}{headers[2]:58}{headers[3]}")
         print(
-            f'{"------------":15}{"---------":15}{"-----------------":20}{"---------":20}'
+            f'{"---":10}{"-----------------------":30}{"-------------------------------------------------------":58}{"-------"}'
         )
 
         for row in rows:
             row = [str (i) for i in row]
             print(
-                f"{row[0]:15}{row[1]:15}{row[2]:20}{row[3]}")
+                f"{row[0]:10}{row[1]:30}{row[2]:58}{row[3]}")
 
 
 def create_people():
@@ -373,6 +373,7 @@ Enter an option from the list above\n: > ''')
         
         
     elif main_inquiry == '5':
+        
         stu_cohrt_search = input ("Press Enter to view all Student Cohorts: ")
         view_all_stu_cohrt_reg()
         
@@ -385,10 +386,10 @@ Enter an option from the list above\n: > ''')
         else: 
             continue   
         
-        
     elif main_inquiry == '6':
+       
         #  Deactivate a Person (They can no longer be selected for new Registrations or as an instructor for a Cohort)
-        view_cohorts = input ("Press Enter to view all Courses: ")
+        
         view_all_courses()
         user_input = input("Please Select Course from above list.")
         query = db_cursor.execute (f"SELECT * FROM Courses WHERE course_id = {user_input}")
@@ -397,21 +398,22 @@ Enter an option from the list above\n: > ''')
         db_cursor.execute (f"""UPDATE Courses
         SET active = '0' WHERE course_id = {user_input}; """)
         connection.commit()
+    
     elif main_inquiry == '7':
+        
         #  Deactivate a Person (They can no longer be selected for new Registrations or as an instructor for a Cohort)
-        view_cohorts = input ("Press Enter to view all People: ")
+        
         view_all_people()
         user_input = input("Please Select Person from above list.")
-        query = db_cursor.execute (f"SELECT * FROM People WHERE person_id = {user_input}")
-                
-        for row in (query):
-            print (f'Great Job! you have successfully Selected {row}')
-        db_cursor.execute (f"""UPDATE People
-        SET active = '0' WHERE person_id = {user_input}; """)
+        
+        update_query = "UPDATE People SET active = '0' WHERE person_id = ?;"
+        result = db_cursor.execute (update_query, (user_input,)).fetchone()
         connection.commit()
+                
     
     elif main_inquiry == '8': 
-        view_cohorts = input ("Press Enter to view all cohorts: ")
+        
+        
         view_all_cohorts()
         user_input = input("Please Select Cohort from above list Using Cohort_id.")
         query = db_cursor.execute (f"SELECT * FROM Cohorts WHERE cohort_id = {user_input}")
@@ -423,23 +425,95 @@ Enter an option from the list above\n: > ''')
         connection.commit()
     
     elif main_inquiry == '9':
-        user_input = ("Press enter to view all student cohorts: ")
+        search_cohort = input ("Press enter to view all student cohorts: ")
         view_all_stu_cohrt_reg()
-        user_input = input("Please Select Student that you would like to add Course Completion to: ")
-        query = db_cursor.execute (f"SELECT * FROM Student_Cohort_Reg WHERE student_id = {user_input}")
-                
-        for row in (query):
-            print (f'Great Job! you have successfully Selected {row}')
-        db_cursor.execute (f""" UPDATE Student_Cohort_Reg
-        SET completion_date = 'YYYY-MM-DD HH:MM:SS';()""")
-        connection.commit()
+        user_input = input("Please Select Student that you would like to add Course  Completion to: ")
+        # query = db_cursor.execute 
+        
+        query =  "UPDATE Student_Cohort_Reg SET completion_date = current_date  WHERE student_id = ?"
+        
+        
+        result = db_cursor.execute(query, (user_input,)).fetchone()
+        
+        print (f'Great Job! {user_input} has successfully completed their course! ')
+        
+    
     elif main_inquiry == '10':
-        pass
+        
+        
+        while True:
+            reactivate_input = input ('''
+            
+            Please select what you want to reactivate
+            Reactivation
+            ------------
+            1.Person
+            2.Course
+            3.Cohort
+            4.Student Cohort Registration
+            5.Go Back
+            
+            ''')
+            
+            if reactivate_input == '1':
+               
+               
+                view_all_people()
+                user_input = input("Please Select Person from above list that you want to reactivate.")
+                
+                update_query = "UPDATE People SET active = '1' WHERE person_id = ?;"
+                result = db_cursor.execute (update_query, (user_input,)).fetchone()
+                connection.commit()
+                
+            elif reactivate_input == '2':
+                
+               
+                view_all_courses()
+                user_input = input("Please Select Course from above list.")
+                query = db_cursor.execute (f"SELECT * FROM Courses WHERE course_id = {user_input}")
+                for row in (query):
+                    print (f'Great Job! you have successfully Selected {row}')
+                db_cursor.execute (f"""UPDATE Courses
+                SET active = '1' WHERE course_id = {user_input}; """)
+                connection.commit()
+    
+            elif reactivate_input == '3':
+                
+                view_all_cohorts()
+                user_input = input("Please Select Cohort from above list Using Cohort_id.")
+                query = db_cursor.execute (f"SELECT * FROM Cohorts WHERE cohort_id = {user_input}")
+                        
+                for row in (query):
+                    print (f'Great Job! you have successfully Selected {row}')
+                db_cursor.execute (f"""UPDATE Cohorts
+                SET active = '1' WHERE cohort_id = {user_input}; """)
+                connection.commit()
+            elif reactivate_input == '4':
+                view_all_stu_cohrt_reg()
+                user_input = input("Please Select Student from above list that you want to reactivate.")
+                
+                update_query = "UPDATE Student_Cohort_Reg SET active = '1' WHERE cohort_id = ?;"
+                result = db_cursor.execute (update_query, (user_input,)).fetchone()
+                connection.commit()
+            elif reactivate_input == '5':
+                break
+        
+        
+            # view_cohorts = input ("Press Enter to view all cohorts: ")
+            # view_all_cohorts()
+            # user_input = input("Please Select Cohort from above list Using Cohort_id.")
+            # query = db_cursor.execute (f"SELECT * FROM Cohorts WHERE cohort_id = {user_input}")
+                    
+            # for row in (query):
+            #     print (f'Great Job! you have successfully Selected {row}')
+            # db_cursor.execute (f"""UPDATE Cohorts
+            # SET active = '0' WHERE cohort_id = {user_input}; """)
+            # connection.commit()
+    
+    
+    
     elif main_inquiry == '11':
-        # view_actv_reg_for_cohort() 
-        view_actv_reg_cohorts = input ("Press Enter to view all active registrations for cohorts: ")
-        
-        
+      
         query = db_cursor.execute (f"SELECT * FROM Student_Cohort_Reg WHERE active = 1")
         
         
@@ -466,10 +540,6 @@ Enter an option from the list above\n: > ''')
                 f"{row[0]:15}{row[1]:15}{row[2]:20}{row[3]:20}{row[4]:15}{row[5]:}")
         connection.commit()
     elif main_inquiry == '12':
-        
-        # View active cohorts for a course
-        view_actv_cohorts = input ("Press Enter to view all cohorts: ")
-        
         
         query = db_cursor.execute (f"SELECT * FROM Cohorts WHERE active = 1")
               
@@ -498,7 +568,7 @@ Enter an option from the list above\n: > ''')
         
         connection.commit()
     elif main_inquiry == '13':
-        view_people = input ("Press Enter to view all active people: ")
+        # view_people = input ("Press Enter to view all active people: ")
         
         
         query = db_cursor.execute (f"SELECT * FROM People WHERE active = 1")
@@ -583,3 +653,7 @@ Enter an option from the list above\n: > ''')
 
 
 
+        
+        
+        
+        
